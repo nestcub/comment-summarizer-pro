@@ -1,1 +1,2 @@
-project_id = "iqbqadsldcxhjppeaonr"
+[functions]
+node_version = "20"
