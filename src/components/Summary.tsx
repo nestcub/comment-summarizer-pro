@@ -1,6 +1,7 @@
 import { Card } from "./ui/card";
 import { ScrollArea } from "./ui/scroll-area";
 import { Skeleton } from "./ui/skeleton";
+import ReactMarkdown from 'react-markdown';
 
 interface SummaryProps {
   summary?: string;
@@ -21,8 +22,8 @@ export const Summary = ({ summary, isLoading }: SummaryProps) => {
         </div>
       ) : (
         <ScrollArea className="h-[200px] rounded-md">
-          <div className="prose prose-sm max-w-none">
-            {summary}
+          <div className="prose prose-sm max-w-none dark:prose-invert">
+            <ReactMarkdown>{summary || ""}</ReactMarkdown>
           </div>
         </ScrollArea>
       )}

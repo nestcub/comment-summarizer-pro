@@ -16,19 +16,21 @@ interface VideoData {
     author: string;
     likes: number;
   }>;
-  summary: string;
 }
 
 const Index = () => {
   const [videoData, setVideoData] = useState<VideoData | null>(null);
+  const [summary, setSummary] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isSummarizing, setIsSummarizing] = useState(false);
   const { toast } = useToast();
 
   const handleUrlSubmit = async (url: string) => {
     setIsLoading(true);
+    setSummary("");
     try {
       const { data, error } = await supabase.functions.invoke('process-video', {
-        body: { videoUrl: url }
+        body: { videoUrl: url, getSummary: false }
       });
 
       if (error) throw error;
@@ -46,17 +48,38 @@ const Index = () => {
     }
   };
 
+  const handleSummarize = async () => {
+    setIsSummarizing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('process-video', {
+        body: { videoUrl: "", getSummary: true, comments: videoData?.comments }
+      });
+
+      if (error) throw error;
+      setSummary(data.summary);
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to generate summary. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSummarizing(false);
+    }
+  };
+
   return (
     <div className="min-h-screen youtube-gradient py-12 px-4">
       <YouTubeInput onSubmit={handleUrlSubmit} isLoading={isLoading} />
       <VideoPreview
         videoData={videoData ?? undefined}
-        onSummarize={() => {}}
+        onSummarize={handleSummarize}
         isLoading={isLoading}
       />
       <Summary
-        summary={videoData?.summary}
-        isLoading={isLoading}
+        summary={summary}
+        isLoading={isSummarizing}
       />
     </div>
   );
