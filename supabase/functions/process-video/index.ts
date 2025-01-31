@@ -47,10 +47,13 @@ async function summarizeComments(comments: any[]) {
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { 
+      headers: corsHeaders 
+    });
   }
 
   try {
+    console.log('Processing video request');
     const { videoUrl } = await req.json();
     
     // Extract video ID from URL
@@ -63,6 +66,7 @@ serve(async (req) => {
         videoId = pathSegments[pathSegments.length - 1];
       }
     } catch (error) {
+      console.error('Error parsing URL:', error);
       throw new Error('Invalid YouTube URL');
     }
 
@@ -100,9 +104,11 @@ serve(async (req) => {
     });
   } catch (error) {
     console.error('Error processing video:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    return new Response(
+      JSON.stringify({ error: error.message }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      }
+    );
   }
 });
