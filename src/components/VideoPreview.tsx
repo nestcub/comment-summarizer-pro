@@ -1,7 +1,7 @@
 import { Button } from "./ui/button";
 import { ScrollArea } from "./ui/scroll-area";
 import { Skeleton } from "./ui/skeleton";
-import { ThumbsUp, MessageCircle } from "lucide-react";
+import { ThumbsUp, MessageCircle, Youtube, Loader } from "lucide-react";
 
 interface VideoPreviewProps {
   videoData?: {
@@ -18,15 +18,19 @@ interface VideoPreviewProps {
   };
   onSummarize: () => void;
   isLoading?: boolean;
+  isSummarizing?: boolean;
 }
 
-export const VideoPreview = ({ videoData, onSummarize, isLoading }: VideoPreviewProps) => {
+export const VideoPreview = ({ videoData, onSummarize, isLoading, isSummarizing }: VideoPreviewProps) => {
   if (!videoData && !isLoading) return null;
 
   return (
     <div className="w-full max-w-3xl mx-auto mt-8 bg-card rounded-lg shadow-lg overflow-hidden">
       {isLoading ? (
-        <Skeleton className="w-full h-[200px]" />
+        <div className="w-full h-[400px] flex flex-col items-center justify-center gap-4 bg-muted/50">
+          <Youtube className="w-16 h-16 text-primary animate-spin" />
+          <p className="text-muted-foreground">Loading video details...</p>
+        </div>
       ) : (
         videoData && (
           <>
@@ -68,8 +72,16 @@ export const VideoPreview = ({ videoData, onSummarize, isLoading }: VideoPreview
                   onClick={onSummarize}
                   className="w-full"
                   size="lg"
+                  disabled={isSummarizing}
                 >
-                  Summarize Comments
+                  {isSummarizing ? (
+                    <>
+                      <Loader className="animate-spin" />
+                      Summarizing Comments...
+                    </>
+                  ) : (
+                    'Summarize Comments'
+                  )}
                 </Button>
               </div>
             </div>

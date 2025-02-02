@@ -76,6 +76,7 @@ const Index = () => {
         videoData={videoData ?? undefined}
         onSummarize={handleSummarize}
         isLoading={isLoading}
+        isSummarizing={isSummarizing}
       />
       <Summary
         summary={summary}
