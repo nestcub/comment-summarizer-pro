@@ -1,7 +1,7 @@
 import { Button } from "./ui/button";
 import { ScrollArea } from "./ui/scroll-area";
 import { Skeleton } from "./ui/skeleton";
-import { ThumbsUp, MessageCircle, Youtube, Loader } from "lucide-react";
+import { ThumbsUp, MessageCircle, Youtube, Loader, DollarSign } from "lucide-react";
 
 interface VideoPreviewProps {
   videoData?: {
@@ -17,11 +17,20 @@ interface VideoPreviewProps {
     }>;
   };
   onSummarize: () => void;
+  onDetailedAnalysis: () => void;
   isLoading?: boolean;
   isSummarizing?: boolean;
+  isAnalyzing?: boolean;
 }
 
-export const VideoPreview = ({ videoData, onSummarize, isLoading, isSummarizing }: VideoPreviewProps) => {
+export const VideoPreview = ({ 
+  videoData, 
+  onSummarize, 
+  onDetailedAnalysis,
+  isLoading, 
+  isSummarizing,
+  isAnalyzing 
+}: VideoPreviewProps) => {
   if (!videoData && !isLoading) return null;
 
   return (
@@ -67,12 +76,12 @@ export const VideoPreview = ({ videoData, onSummarize, isLoading, isSummarizing 
                   </div>
                 ))}
               </ScrollArea>
-              <div className="mt-6">
+              <div className="mt-6 space-y-3">
                 <Button
                   onClick={onSummarize}
                   className="w-full"
                   size="lg"
-                  disabled={isSummarizing}
+                  disabled={isSummarizing || isAnalyzing}
                 >
                   {isSummarizing ? (
                     <>
@@ -81,6 +90,25 @@ export const VideoPreview = ({ videoData, onSummarize, isLoading, isSummarizing 
                     </>
                   ) : (
                     'Summarize Comments'
+                  )}
+                </Button>
+                <Button
+                  onClick={onDetailedAnalysis}
+                  className="w-full"
+                  variant="outline"
+                  size="lg"
+                  disabled={isSummarizing || isAnalyzing}
+                >
+                  {isAnalyzing ? (
+                    <>
+                      <Loader className="animate-spin" />
+                      Analyzing Comments...
+                    </>
+                  ) : (
+                    <>
+                      <DollarSign className="w-4 h-4" />
+                      Get Detailed Analysis for $1
+                    </>
                   )}
                 </Button>
               </div>

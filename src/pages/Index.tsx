@@ -23,6 +23,7 @@ const Index = () => {
   const [summary, setSummary] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSummarizing, setIsSummarizing] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const { toast } = useToast();
 
   const handleUrlSubmit = async (url: string) => {
@@ -69,18 +70,45 @@ const Index = () => {
     }
   };
 
+  const handleDetailedAnalysis = async () => {
+    setIsAnalyzing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('process-video', {
+        body: { 
+          videoUrl: "", 
+          getDetailedAnalysis: true, 
+          comments: videoData?.comments 
+        }
+      });
+
+      if (error) throw error;
+      setSummary(data.analysis);
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to generate detailed analysis. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
   return (
     <div className="min-h-screen youtube-gradient py-12 px-4">
       <YouTubeInput onSubmit={handleUrlSubmit} isLoading={isLoading} />
       <VideoPreview
         videoData={videoData ?? undefined}
         onSummarize={handleSummarize}
+        onDetailedAnalysis={handleDetailedAnalysis}
         isLoading={isLoading}
         isSummarizing={isSummarizing}
+        isAnalyzing={isAnalyzing}
       />
       <Summary
         summary={summary}
-        isLoading={isSummarizing}
+        isLoading={isSummarizing || isAnalyzing}
       />
     </div>
   );

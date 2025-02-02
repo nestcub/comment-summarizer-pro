@@ -28,22 +28,53 @@ serve(async (req) => {
 
   try {
     console.log('Processing request');
-    const { videoUrl, getSummary, comments } = await req.json();
+    const { videoUrl, getSummary, getDetailedAnalysis, comments } = await req.json();
     
-    // If getSummary is true, generate summary from provided comments
-    if (getSummary && comments) {
-      console.log('Generating summary for comments');
+    // If getSummary or getDetailedAnalysis is true, generate analysis from provided comments
+    if ((getSummary || getDetailedAnalysis) && comments) {
+      console.log('Generating analysis for comments');
       const genAI = new GoogleGenerativeAI(Deno.env.get('GEMINI_API_KEY'));
       const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
 
-      const prompt = `Analyze these YouTube comments and provide a comprehensive summary of the main points, sentiments, and recurring themes. Format the response in markdown with appropriate headers and bullet points:\n\n${comments.map(c => c.text).join('\n')}`;
+      let prompt;
+      if (getDetailedAnalysis) {
+        prompt = `Analyze these YouTube comments and provide a detailed analysis with the following sections:
+
+1. Sentiment Analysis & Emotion Detection:
+- Overall sentiment score with emojis (😊 Positive | 😡 Negative | 😐 Neutral)
+- Highlight the most emotionally intense comments with 🔥
+
+2. Comment Categories:
+- FAQ (Frequently Asked Questions)
+- Praise
+- Criticism
+- Questions
+- Suggestions
+
+3. Top 3 Discussed Topics:
+- List and briefly explain the most discussed subjects
+
+4. Engagement Score:
+- Rate the comment section's engagement level (1-10)
+- Consider likes, discussion depth, and interaction quality
+
+Format the response in markdown with appropriate headers and bullet points.
+
+Comments to analyze:
+${comments.map(c => c.text).join('\n')}`;
+      } else {
+        prompt = `Analyze these YouTube comments and provide a comprehensive summary of the main points, sentiments, and recurring themes. Format the response in markdown with appropriate headers and bullet points:\n\n${comments.map(c => c.text).join('\n')}`;
+      }
 
       const result = await model.generateContent(prompt);
       const response = await result.response;
-      const summary = response.text();
+      const analysis = response.text();
 
       return new Response(
-        JSON.stringify({ summary }),
+        JSON.stringify({ 
+          summary: getSummary ? analysis : undefined,
+          analysis: getDetailedAnalysis ? analysis : undefined
+        }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
