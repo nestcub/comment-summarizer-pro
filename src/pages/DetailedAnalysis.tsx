@@ -6,15 +6,7 @@ import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Search, ArrowLeft } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from 'recharts';
+import ReactWordcloud from 'react-wordcloud';
 
 interface DetailedAnalysisProps {
   analysis?: string;
@@ -26,12 +18,26 @@ const DetailedAnalysis = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const analysis = location.state?.analysis as string;
 
-  // Mock data for sentiment distribution chart
-  const sentimentData = [
-    { name: 'Positive', count: 45 },
-    { name: 'Neutral', count: 30 },
-    { name: 'Negative', count: 25 },
+  // Mock data for word cloud
+  const words = [
+    { text: 'amazing', value: 64 },
+    { text: 'helpful', value: 42 },
+    { text: 'great', value: 38 },
+    { text: 'content', value: 30 },
+    { text: 'quality', value: 28 },
+    { text: 'thanks', value: 25 },
+    { text: 'awesome', value: 22 },
+    { text: 'learn', value: 20 },
+    { text: 'explanation', value: 18 },
+    { text: 'tutorial', value: 15 },
   ];
+
+  const wordcloudOptions = {
+    rotations: 2,
+    rotationAngles: [-90, 0] as [number, number],
+    fontSizes: [20, 60] as [number, number],
+    padding: 5,
+  };
 
   const filteredAnalysis = analysis
     ? analysis.split('\n').filter(line => 
@@ -39,24 +45,42 @@ const DetailedAnalysis = () => {
       ).join('\n')
     : "";
 
+  const handleBack = () => {
+    navigate('/', { state: { preserveData: true } });
+  };
+
   if (!analysis) {
     return (
       <div className="min-h-screen youtube-gradient py-12 px-4">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-2xl font-bold mb-4">No Analysis Available</h2>
           <p className="mb-4">Please generate an analysis from the main page first.</p>
-          <Button onClick={() => navigate('/')}>Go Back</Button>
+          <Button onClick={handleBack}>Go Back</Button>
         </div>
       </div>
     );
   }
+
+  const components = {
+    p: ({ children }) => {
+      // Add bold styling to category headers
+      const text = children?.toString() || '';
+      if (text.includes('FAQ:') || text.includes('Praise:') || text.includes('Criticism:') || 
+          text.includes('Questions:') || text.includes('Suggestions:')) {
+        return <p className="font-bold text-lg mt-6 mb-3">{children}</p>;
+      }
+      return <p className="mb-2">{children}</p>;
+    },
+    ul: ({ children }) => <ul className="list-disc pl-6 mb-4 space-y-2">{children}</ul>,
+    li: ({ children }) => <li className="mb-1">{children}</li>,
+  };
 
   return (
     <div className="min-h-screen youtube-gradient py-12 px-4">
       <div className="max-w-6xl mx-auto">
         <Button 
           variant="ghost" 
-          onClick={() => navigate('/')}
+          onClick={handleBack}
           className="mb-6"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
@@ -78,44 +102,18 @@ const DetailedAnalysis = () => {
               </div>
               <ScrollArea className="h-[600px]">
                 <div className="prose prose-sm max-w-none dark:prose-invert">
-                  <ReactMarkdown>{filteredAnalysis}</ReactMarkdown>
+                  <ReactMarkdown components={components}>{filteredAnalysis}</ReactMarkdown>
                 </div>
               </ScrollArea>
             </Card>
           </div>
 
-          {/* Right Column - Analytics Dashboard */}
+          {/* Right Column - Word Cloud */}
           <div className="space-y-6">
             <Card className="p-6">
-              <h3 className="text-lg font-semibold mb-4">Sentiment Distribution</h3>
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={sentimentData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="count" fill="#8884d8" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </Card>
-
-            <Card className="p-6">
-              <h3 className="text-lg font-semibold mb-4">Engagement Metrics</h3>
-              <div className="space-y-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">Total Comments</p>
-                  <p className="text-2xl font-bold">100</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Average Sentiment</p>
-                  <p className="text-2xl font-bold">Positive 😊</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Engagement Score</p>
-                  <p className="text-2xl font-bold">8.5/10</p>
-                </div>
+              <h3 className="text-lg font-semibold mb-4">Most Discussed Words</h3>
+              <div className="h-[400px]">
+                <ReactWordcloud words={words} options={wordcloudOptions} />
               </div>
             </Card>
           </div>

@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { YouTubeInput } from "@/components/YouTubeInput";
 import { VideoPreview } from "@/components/VideoPreview";
 import { Summary } from "@/components/Summary";
@@ -21,12 +21,21 @@ interface VideoData {
 
 const Index = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [videoData, setVideoData] = useState<VideoData | null>(null);
   const [summary, setSummary] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const { toast } = useToast();
+
+  // Clear data only when there's no preserveData flag in location state
+  useEffect(() => {
+    if (!location.state?.preserveData) {
+      setVideoData(null);
+      setSummary("");
+    }
+  }, [location]);
 
   const handleUrlSubmit = async (url: string) => {
     setIsLoading(true);
