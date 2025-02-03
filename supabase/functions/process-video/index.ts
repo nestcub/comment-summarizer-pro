@@ -33,12 +33,18 @@ serve(async (req) => {
     // If getSummary or getDetailedAnalysis is true, generate analysis from provided comments
     if ((getSummary || getDetailedAnalysis) && comments) {
       console.log('Generating analysis for comments');
-      const genAI = new GoogleGenerativeAI(Deno.env.get('GEMINI_API_KEY'));
-      const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+      const apiKey = Deno.env.get('GEMINI_API_KEY');
+      if (!apiKey) {
+        throw new Error('GEMINI_API_KEY is not configured');
+      }
 
-      let prompt;
-      if (getDetailedAnalysis) {
-        prompt = `Analyze these YouTube comments and provide a detailed analysis with the following sections:
+      try {
+        const genAI = new GoogleGenerativeAI(apiKey);
+        const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+
+        let prompt;
+        if (getDetailedAnalysis) {
+          prompt = `Analyze these YouTube comments and provide a detailed analysis with the following sections:
 
 1. Sentiment Analysis & Emotion Detection:
 - Overall sentiment score with emojis (😊 Positive | 😡 Negative | 😐 Neutral)
@@ -62,21 +68,27 @@ Format the response in markdown with appropriate headers and bullet points.
 
 Comments to analyze:
 ${comments.map(c => c.text).join('\n')}`;
-      } else {
-        prompt = `Analyze these YouTube comments and provide a comprehensive summary of the main points, sentiments, and recurring themes. Format the response in markdown with appropriate headers and bullet points:\n\n${comments.map(c => c.text).join('\n')}`;
+        } else {
+          prompt = `Analyze these YouTube comments and provide a comprehensive summary of the main points, sentiments, and recurring themes. Format the response in markdown with appropriate headers and bullet points:\n\n${comments.map(c => c.text).join('\n')}`;
+        }
+
+        console.log('Sending prompt to Gemini API');
+        const result = await model.generateContent(prompt);
+        console.log('Received response from Gemini API');
+        const response = await result.response;
+        const analysis = response.text();
+
+        return new Response(
+          JSON.stringify({ 
+            summary: getSummary ? analysis : undefined,
+            analysis: getDetailedAnalysis ? analysis : undefined
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      } catch (error) {
+        console.error('Error with Gemini API:', error);
+        throw new Error(`Failed to generate analysis: ${error.message}`);
       }
-
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      const analysis = response.text();
-
-      return new Response(
-        JSON.stringify({ 
-          summary: getSummary ? analysis : undefined,
-          analysis: getDetailedAnalysis ? analysis : undefined
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
     }
 
     // Otherwise, fetch video data
