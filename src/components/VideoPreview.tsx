@@ -2,7 +2,7 @@ import { Button } from "./ui/button";
 import { ScrollArea } from "./ui/scroll-area";
 import { Skeleton } from "./ui/skeleton";
 import { Input } from "./ui/input";
-import { ThumbsUp, MessageCircle, Youtube, Loader, DollarSign, Search } from "lucide-react";
+import { ThumbsUp, MessageCircle, Youtube, Loader, Search } from "lucide-react";
 import { useState } from "react";
 
 interface VideoPreviewProps {
@@ -97,7 +97,7 @@ export const VideoPreview = ({
               <div className="mt-6 space-y-3">
                 <Button
                   onClick={onSummarize}
-                  className="w-full"
+                  className="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 transition-all duration-300 shadow-lg hover:shadow-xl"
                   size="lg"
                   disabled={isSummarizing}
                 >
@@ -107,7 +107,7 @@ export const VideoPreview = ({
                       Summarizing Comments...
                     </>
                   ) : (
-                    'Get Detailed Summary'
+                    'Summarize Comments'
                   )}
                 </Button>
               </div>

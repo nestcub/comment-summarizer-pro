@@ -21,19 +21,29 @@ interface VideoData {
 
 const Index = () => {
   const location = useLocation();
-  const [videoData, setVideoData] = useState<VideoData | null>(null);
-  const [summary, setSummary] = useState<string>("");
+  const [videoData, setVideoData] = useState<VideoData | null>(() => {
+    const saved = localStorage.getItem('videoData');
+    return saved ? JSON.parse(saved) : null;
+  });
+  const [summary, setSummary] = useState<string>(() => {
+    const saved = localStorage.getItem('summary');
+    return saved || "";
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [isSummarizing, setIsSummarizing] = useState(false);
   const { toast } = useToast();
 
-  // Clear data only when there's no preserveData flag in location state
   useEffect(() => {
-    if (!location.state?.preserveData) {
-      setVideoData(null);
-      setSummary("");
+    if (videoData) {
+      localStorage.setItem('videoData', JSON.stringify(videoData));
     }
-  }, [location]);
+  }, [videoData]);
+
+  useEffect(() => {
+    if (summary) {
+      localStorage.setItem('summary', summary);
+    }
+  }, [summary]);
 
   const handleUrlSubmit = async (url: string) => {
     setIsLoading(true);
