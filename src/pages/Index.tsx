@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { YouTubeInput } from "@/components/YouTubeInput";
 import { VideoPreview } from "@/components/VideoPreview";
 import { Summary } from "@/components/Summary";
@@ -19,6 +20,7 @@ interface VideoData {
 }
 
 const Index = () => {
+  const navigate = useNavigate();
   const [videoData, setVideoData] = useState<VideoData | null>(null);
   const [summary, setSummary] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
@@ -82,7 +84,7 @@ const Index = () => {
       });
 
       if (error) throw error;
-      setSummary(data.analysis);
+      navigate('/detailed-analysis', { state: { analysis: data.analysis } });
     } catch (error) {
       console.error('Error:', error);
       toast({
