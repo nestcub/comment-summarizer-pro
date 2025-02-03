@@ -1,7 +1,9 @@
 import { Button } from "./ui/button";
 import { ScrollArea } from "./ui/scroll-area";
 import { Skeleton } from "./ui/skeleton";
-import { ThumbsUp, MessageCircle, Youtube, Loader, DollarSign } from "lucide-react";
+import { Input } from "./ui/input";
+import { ThumbsUp, MessageCircle, Youtube, Loader, DollarSign, Search } from "lucide-react";
+import { useState } from "react";
 
 interface VideoPreviewProps {
   videoData?: {
@@ -31,7 +33,14 @@ export const VideoPreview = ({
   isSummarizing,
   isAnalyzing 
 }: VideoPreviewProps) => {
+  const [searchQuery, setSearchQuery] = useState("");
+  
   if (!videoData && !isLoading) return null;
+
+  const filteredComments = videoData?.comments.filter(comment => 
+    comment.text.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    comment.author.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className="w-full max-w-3xl mx-auto mt-8 bg-card rounded-lg shadow-lg overflow-hidden">
@@ -62,8 +71,17 @@ export const VideoPreview = ({
                   <span>{videoData.commentCount.toLocaleString()}</span>
                 </div>
               </div>
+              <div className="relative mb-4">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search comments..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
               <ScrollArea className="h-[300px] rounded-md border p-4">
-                {videoData.comments.map((comment) => (
+                {filteredComments?.map((comment) => (
                   <div key={comment.id} className="mb-4 last:mb-0">
                     <div className="flex justify-between items-start mb-1">
                       <span className="font-medium">{comment.author}</span>
@@ -81,7 +99,7 @@ export const VideoPreview = ({
                   onClick={onSummarize}
                   className="w-full"
                   size="lg"
-                  disabled={isSummarizing || isAnalyzing}
+                  disabled={isSummarizing}
                 >
                   {isSummarizing ? (
                     <>
@@ -89,26 +107,7 @@ export const VideoPreview = ({
                       Summarizing Comments...
                     </>
                   ) : (
-                    'Summarize Comments'
-                  )}
-                </Button>
-                <Button
-                  onClick={onDetailedAnalysis}
-                  className="w-full"
-                  variant="outline"
-                  size="lg"
-                  disabled={isSummarizing || isAnalyzing}
-                >
-                  {isAnalyzing ? (
-                    <>
-                      <Loader className="animate-spin" />
-                      Analyzing Comments...
-                    </>
-                  ) : (
-                    <>
-                      <DollarSign className="w-4 h-4" />
-                      Get Detailed Analysis for $1
-                    </>
+                    'Get Detailed Summary'
                   )}
                 </Button>
               </div>

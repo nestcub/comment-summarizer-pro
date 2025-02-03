@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { YouTubeInput } from "@/components/YouTubeInput";
 import { VideoPreview } from "@/components/VideoPreview";
 import { Summary } from "@/components/Summary";
@@ -20,13 +20,11 @@ interface VideoData {
 }
 
 const Index = () => {
-  const navigate = useNavigate();
   const location = useLocation();
   const [videoData, setVideoData] = useState<VideoData | null>(null);
   const [summary, setSummary] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSummarizing, setIsSummarizing] = useState(false);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const { toast } = useToast();
 
   // Clear data only when there's no preserveData flag in location state
@@ -64,11 +62,16 @@ const Index = () => {
     setIsSummarizing(true);
     try {
       const { data, error } = await supabase.functions.invoke('process-video', {
-        body: { videoUrl: "", getSummary: true, comments: videoData?.comments }
+        body: { 
+          videoUrl: "", 
+          getSummary: true, 
+          getDetailedAnalysis: true, 
+          comments: videoData?.comments 
+        }
       });
 
       if (error) throw error;
-      setSummary(data.summary);
+      setSummary(data.summary || data.analysis);
     } catch (error) {
       console.error('Error:', error);
       toast({
@@ -81,45 +84,19 @@ const Index = () => {
     }
   };
 
-  const handleDetailedAnalysis = async () => {
-    setIsAnalyzing(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('process-video', {
-        body: { 
-          videoUrl: "", 
-          getDetailedAnalysis: true, 
-          comments: videoData?.comments 
-        }
-      });
-
-      if (error) throw error;
-      navigate('/detailed-analysis', { state: { analysis: data.analysis } });
-    } catch (error) {
-      console.error('Error:', error);
-      toast({
-        title: "Error",
-        description: "Failed to generate detailed analysis. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsAnalyzing(false);
-    }
-  };
-
   return (
     <div className="min-h-screen youtube-gradient py-12 px-4">
       <YouTubeInput onSubmit={handleUrlSubmit} isLoading={isLoading} />
       <VideoPreview
         videoData={videoData ?? undefined}
         onSummarize={handleSummarize}
-        onDetailedAnalysis={handleDetailedAnalysis}
+        onDetailedAnalysis={() => {}}
         isLoading={isLoading}
         isSummarizing={isSummarizing}
-        isAnalyzing={isAnalyzing}
       />
       <Summary
         summary={summary}
-        isLoading={isSummarizing || isAnalyzing}
+        isLoading={isSummarizing}
       />
     </div>
   );
